@@ -1,0 +1,40 @@
+---
+- hosts: all
+  tasks:
+    - name: ensure keepalived is at the latest version
+      apt: 
+        name: keepalived 
+        state: latest
+      become: yes
+    - sysctl:
+        name: net.ipv4.ip_nonlocal_bind
+        value: 1
+        sysctl_set: yes
+        state: present
+        reload: yes
+    - name: configure keepalived
+      copy:
+        src: conf/keepalived.conf
+        dest: /etc/keepalived/keepalived.conf
+      become: yes
+    - name: start keepalived
+      service:
+          name: keepalived 
+          state: started
+          enabled: yes 
+      become: yes
+    - name: ensure haproxy is at the latest version
+      apt: 
+        name: haproxy 
+        state: latest
+      become: yes
+    - name: configure haproxy 
+      copy:
+        src: conf/haproxy.cfg
+        dest: /etc/haproxy/haproxy.cfg
+      become: yes
+    - name: start nginx
+      service:
+        name: haproxy 
+        state: started 
+      become: yes

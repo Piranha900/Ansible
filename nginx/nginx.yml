@@ -1,0 +1,32 @@
+---
+- hosts: all
+  tasks:
+    - name: stop apache service 
+      service: 
+        name: apache2 
+        state: stopped 
+        enabled: no
+      become: yes
+      register: apache2_service_result
+      failed_when: "apache2_service_result is failed and 'Could not find the requested service' not in apache2_service_result.msg"
+    - name: ensure nginx is at the latest version
+      apt: 
+        name: nginx 
+        state: latest
+      become: yes
+    - name: start nginx
+      service:
+          name: nginx
+          state: started
+          enabled: yes 
+      become: yes
+    - name: copy the nginx config file and restart nginx
+      copy:
+        src: conf/reverse-proxy.conf
+        dest: /etc/nginx/conf.d/reverse-proxy.conf
+      become: yes
+    - name: restart nginx
+      service:
+        name: nginx
+        state: restarted
+      become: yes
