@@ -13,8 +13,8 @@
         state: present
         reload: yes
     - name: configure keepalived
-      copy:
-        src: conf/keepalived.conf
+      template:
+        src: conf/keepalived.conf.j2
         dest: /etc/keepalived/keepalived.conf
       become: yes
     - name: start keepalived
@@ -29,8 +29,8 @@
         state: latest
       become: yes
     - name: configure haproxy 
-      copy:
-        src: conf/haproxy.cfg
+      template:
+        src: conf/haproxy.cfg.j2
         dest: /etc/haproxy/haproxy.cfg
       become: yes
     - name: start nginx

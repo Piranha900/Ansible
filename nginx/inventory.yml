@@ -1,6 +1,5 @@
 [web]
-192.168.1.70
-192.168.1.71
+192.168.1.76
 
 [web:vars]
 ansible_python_interpreter=/usr/bin/python3
