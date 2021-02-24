@@ -1,12 +1,11 @@
-- hosts: master
+- hosts: masters
   become: yes
   tasks:
     - name: initialize the cluster
-      shell: kubeadm init --control-plane-endpoint "192.168.1.72:6443" --upload-certs --pod-network-cidr=10.244.0.0/16 >> cluster_initialized.txt
-      args:
-        chdir: $HOME
-        creates: cluster_initialized.txt
-
+      shell: sudo kubeadm init --control-plane-endpoint "192.168.1.72:6443" --upload-certs --pod-network-cidr=10.244.0.0/16 #>> cluster_initialized.txt
+      #args:
+      #  chdir: $HOME
+      #  creates: cluster_initialized.txt
     - name: create .kube directory
       become: yes
       become_user: debian 
@@ -14,18 +13,16 @@
         path: $HOME/.kube
         state: directory
         mode: 0755
-
     - name: copy admin.conf to user's kube config
+      become: yes
+      become_user: root 
+      become_method: su
       copy:
         src: /etc/kubernetes/admin.conf
         dest: /home/debian/.kube/config
         remote_src: yes
         owner: debian 
-
     - name: install Pod network
       become: yes
       become_user: debian 
-      shell: kubectl apply -f conf/flannel/kube-flannel.yml >> pod_network_setup.txt
-      args:
-        chdir: $HOME
-        creates: pod_network_setup.txt
+      shell: kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml 
