@@ -2,10 +2,13 @@
   become: yes
   tasks:
     - name: initialize the cluster
-      shell: sudo kubeadm init --control-plane-endpoint "192.168.1.72:6443" --upload-certs --pod-network-cidr=10.244.0.0/16 #>> cluster_initialized.txt
-      #args:
-      #  chdir: $HOME
-      #  creates: cluster_initialized.txt
+      shell: sudo kubeadm init --control-plane-endpoint "192.168.1.72:6443" --upload-certs --pod-network-cidr=10.244.0.0/16 
+      register: join
+    - name: copy the output to a local file
+      copy:
+        content: "{{ join.stdout }}"
+        dest: "/tmp/hello.txt"
+      delegate_to: localhost
     - name: create .kube directory
       become: yes
       become_user: debian 

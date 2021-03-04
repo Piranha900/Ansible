@@ -1,4 +1,3 @@
-#da configurare
 
 all:
   vars:
@@ -14,5 +13,11 @@ masters:
   hosts:
     k8s-mn-01:
       ip: 192.168.1.73
+  vars:
+    ansible_python_interpreter: /usr/bin/python3
+workers:
+  hosts:
+    k8s-wn-01:
+      ip: 192.168.1.74
   vars:
     ansible_python_interpreter: /usr/bin/python3

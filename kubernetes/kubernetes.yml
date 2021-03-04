@@ -2,74 +2,144 @@
 - hosts: all
   become: yes
   tasks:
-#INSTALL DOCKER AND REPO
+##INSTALL DOCKER AND REPO
     - name: install Docker
       apt:
+        #state: present 
         pkg:
           - docker-ce=5:19.03.15~3-0~debian-buster
           - docker-ce-cli=5:19.03.15~3-0~debian-buster
           - containerd.io=1.3.9-1
-        update_cache: true
+            #update_cache: true
       become: yes
-    - name: Configure cgroup 
-      copy:
-        src: conf/docker/daemon.json
-        dest: /etc/docker/daemon.json
-      become: yes
-    - name: Reload daemon
-      ansible.builtin.systemd:
-        daemon_reload: yes
-    - name: install APT Transport HTTPS
-      apt:
-        name: apt-transport-https
-        state: present
-    - name: add Kubernetes apt-key
-      apt_key:
-        url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
-        state: present
-    - name: add Kubernetes APT repository
-      apt_repository:
-       repo: deb http://apt.kubernetes.io/ kubernetes-xenial main
-       state: present
-       filename: 'kubernetes'
-#CONFIGURE MACHINE
-    - name: Configure modules-load 
-      copy:
-        src: conf/modules-load/k8s.conf
-        dest: /etc/modules-load.d/k8s.conf
-      become: yes
-    - name: Configure sysctl
-      copy:
-        src: conf/sysctl/k8s.conf
-        dest: /etc/sysctl.d/k8s.conf
-      become: yes
-    - shell: sudo sysctl --system
-#INSTALL K8S TOOLS
-    - name: install kubelet
-      apt:
-        name: kubelet=1.20.4-00
-        state: present 
-        update_cache: true
-    - name: install kubeadm
-      apt:
-        name: kubeadm=1.20.4-00
-        state: present
-        update_cache: true
-- hosts: masters
+#    - name: Configure cgroup 
+#      check_mode: yes
+#      copy:
+#        src: conf/docker/daemon.json
+#        dest: /etc/docker/daemon.json
+#      become: yes
+#    - name: Reload daemon
+#      check_mode: yes
+#      ansible.builtin.systemd:
+#        daemon_reload: yes
+#    - name: install APT Transport HTTPS
+#      check_mode: yes
+#      apt:
+#        name: apt-transport-https
+#        state: present
+#    - name: add Kubernetes apt-key
+#      check_mode: yes
+#      apt_key:
+#        url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
+#        state: present
+#    - name: add Kubernetes APT repository
+#      check_mode: yes
+#      apt_repository:
+#       repo: deb http://apt.kubernetes.io/ kubernetes-xenial main
+#       state: present
+#       filename: 'kubernetes'
+##CONFIGURE MACHINE
+#    - name: Configure modules-load 
+#      check_mode: yes
+#      copy:
+#        src: conf/modules-load/k8s.conf
+#        dest: /etc/modules-load.d/k8s.conf
+#      become: yes
+#    - name: Configure sysctl
+#      check_mode: yes
+#      copy:
+#        src: conf/sysctl/k8s.conf
+#        dest: /etc/sysctl.d/k8s.conf
+#      become: yes
+#    - shell: sudo sysctl --system
+#      check_mode: yes
+##INSTALL K8S TOOLS
+#    - name: install kubelet
+#      check_mode: yes
+#      apt:
+#        name: kubelet=1.20.4-00
+#        state: present 
+#        update_cache: true
+#    - name: install kubeadm
+#      check_mode: yes
+#      apt:
+#        name: kubeadm=1.20.4-00
+#        state: present
+#        update_cache: true
+#    - name: install kubectl
+#      check_mode: yes
+#      apt:
+#        name: kubectl=1.20.4-00
+#        state: present
+#        update_cache: true
+#        force: yes
+#- hosts: masters 
+#  become: yes
+#  tasks:
+##DISABLE SWAP
+#    - name: Disable SWAP since Kubernetes can't work with swap enabled (1/2)
+#      check_mode: yes
+#      shell: |
+#        sudo swapoff -a
+#    - name: Disable SWAP in fstab since Kubernetes can't work with swap enabled (2/2)
+#      check_mode: yes
+#      replace:
+#         path: /etc/fstab
+#         regexp: '^([^#].*?\sswap\s+sw\s+.*)$'
+#         replace: '# \1'
+#- hosts: masters
+#  become: yes
+#  tasks:
+#    - name: initialize the cluster
+#      check_mode: yes
+#      shell: sudo kubeadm init --control-plane-endpoint "192.168.1.72:6443" --upload-certs --pod-network-cidr=10.244.0.0/16 
+#      register: join
+#    - name: copy the output to a local file
+#      check_mode: yes
+#      copy:
+#        content: "{{ join.stdout }}"
+#        dest: "/tmp/hello.txt"
+#      delegate_to: localhost
+#    - name: create .kube directory
+#      check_mode: yes
+#      become: yes
+#      become_user: debian 
+#      file:
+#        path: $HOME/.kube
+#        state: directory
+#        mode: 0755
+#    - rame: copy admin.conf to user's kube config
+#      check_mode: yes
+#      become: yes
+#      become_user: root 
+#      become_method: su
+#      copy:
+#        src: /etc/kubernetes/admin.conf
+#        dest: /home/debian/.kube/config
+#        remote_src: yes
+#        owner: debian 
+#    - name: install Pod network
+#      check_mode: yes
+#      become: yes
+#      become_user: debian 
+#      shell: kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
+- hosts: masters 
+  become: yes
+  gather_facts: false
+  tasks:
+    - name: get join command
+      shell: kubeadm token create --print-join-command
+      register: join_command_raw
+    - name: get join command
+      shell: join_command_raw >> join.txt
+    - name: set join command
+      set_fact:
+        join_command: "{{ join_command_raw.stdout_lines[0] }}"
+- hosts: workers
   become: yes
   tasks:
-    - name: install kubectl
-      apt:
-        name: kubectl=1.20.4-00
-        state: present
-        update_cache: true
-        force: yes
-#DISABLE SWAP
-    - name: Disable SWAP since Kubernetes can't work with swap enabled (1/2)
-      shell: |
-        sudo swapoff -a
-    - name: Disable SWAP in fstab since Kubernetes can't work with swap enabled (2/2)
-      replace:
-         path: /etc/fstab
-         regexp: '^([^#].*?\sswap\s+sw\s+.*)$'
-         replace: '# \1'
+    - name: join cluster
+      shell: "{{ join_command }} >> worker.txt" #"{{ groups['masters'][0].join_command }} >> node_joined.txt"
+      args:
+        chdir: $HOME
+        creates: node_joined.txt
