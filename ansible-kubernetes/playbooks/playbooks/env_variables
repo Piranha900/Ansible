@@ -1,4 +1,4 @@
-ad_addr: 10.11.12.2
+ad_addr: 192.168.1.40 
 cidr_v: 10.244.0.0/16
 
 packages:
@@ -8,7 +8,7 @@ packages:
 services:
 - docker
 - kubelet
-- firewalld
+# - firewalld
 
 # Based on https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/install-kubeadm/#check-required-ports
 # and https://coreos.com/flannel/docs/latest/troubleshooting.html (Firewalls section)

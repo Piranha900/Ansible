@@ -1,5 +1,5 @@
 ---
-- hosts: kubernetes-master-nodes
+- hosts: kubernetes-master-node
   become: yes
   vars_files:
   - env_variables
@@ -10,20 +10,51 @@
   - name: Resetting kubeadm
     shell: kubeadm reset -f
     register: output
+  
+  - name: Deleting Interfaces 
+    shell: |
+     ip l delete cni0
+     ip l delete flannel.1
+
+  - name: Resetting config
+    shell: |
+     rm -rf $HOME/.kube
+     rm -rf kube-flannel.yml
 
   - name: Initializing Kubernetes cluster
-    shell: kubeadm init --apiserver-advertise-address {{ad_addr}} --pod-network-cidr={{cidr_v}}
+    shell: kubeadm init --pod-network-cidr={{cidr_v}} --control-plane-endpoint {{ad_addr}}:6443 --upload-certs
     register: output
 
   - name: Storing Logs and Generated token for future purpose.
     local_action: copy content={{ output.stdout }} dest={{ token_file }}
     become: False
 
-  - name: Copying required files
-    shell: |
-     mkdir -p $HOME/.kube
-     sudo cp -f /etc/kubernetes/admin.conf $HOME/.kube/config
-     sudo chown $(id -u):$(id -g) $HOME/.kube/config
+  - name: create .kube directory
+    become: yes
+    file:
+      path: $HOME/.kube
+      state: directory
+      mode: 0755
 
-  - name: Install Network Add-on
-    command: kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
+  - name: copy admin.conf to user's kube config
+    copy:
+      src: /etc/kubernetes/admin.conf
+      dest: $HOME/.kube/config
+      remote_src: yes
+
+  - name: install Pod network
+    become: yes
+    shell: kubectl apply -f https://github.com/coreos/flannel/raw/master/Documentation/kube-flannel.yml
+
+        #  - name: Copying required files
+        #    shell: |
+        #     mkdir -p $HOME/.kube
+        #     cp -f /etc/kubernetes/admin.conf $HOME/.kube/config
+        #     chown $(id -u):$(id -g) $HOME/.kube/config
+
+        #  - name: Download Network Add-on
+        #    command: wget https://github.com/coreos/flannel/raw/master/Documentation/kube-flannel.yml
+
+        #  - name: Install Network Add-on
+        #    command: kubectl apply -f kube-flannel.yml
+

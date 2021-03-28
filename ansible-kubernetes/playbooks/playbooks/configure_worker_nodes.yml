@@ -4,6 +4,19 @@
   vars_files:
   - env_variables
   tasks:
+  - name: Resetting kubeadm
+    shell: kubeadm reset -f
+    register: output
+
+  - name: Deleting Interfaces 
+    shell: |
+     ip l delete cni0
+     ip l delete flannel.1
+  
+  - name: Resetting config
+    shell: |
+     rm -rf $HOME/.kube
+
   - name: Copying token to worker nodes
     copy: src={{ token_file }} dest=join_token
 
@@ -12,3 +25,10 @@
      kubeadm reset -f
      cat join_token | tail -2 > out.sh
      sh out.sh
+
+     #  - name: Joining worker nodes with kubernetes master
+     #    shell: |
+     #     kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.9.6/manifests/namespace.yaml
+     #     kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.9.6/manifests/metallb.yaml
+     #     kubectl create secret generic -n metallb-system memberlist --from-literal=secretkey="$(openssl rand -base64 128)"
+
