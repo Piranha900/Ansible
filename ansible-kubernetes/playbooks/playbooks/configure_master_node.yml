@@ -4,25 +4,9 @@
   vars_files:
   - env_variables
   tasks:
-  - name: Pulling images required for setting up a Kubernetes cluster
-    shell: kubeadm config images pull
-
-  - name: Resetting kubeadm
-    shell: kubeadm reset -f
-    register: output
-  
-  - name: Deleting Interfaces 
-    shell: |
-     ip l delete cni0
-     ip l delete flannel.1
-
-  - name: Resetting config
-    shell: |
-     rm -rf $HOME/.kube
-     rm -rf kube-flannel.yml
 
   - name: Initializing Kubernetes cluster
-    shell: kubeadm init --pod-network-cidr={{cidr_v}} --control-plane-endpoint {{ad_addr}}:6443 --upload-certs
+    shell: kubeadm init --pod-network-cidr 10.244.0.0/16 --control-plane-endpoint {{ad_addr}}:6443 --upload-certs
     register: output
 
   - name: Storing Logs and Generated token for future purpose.
@@ -42,19 +26,13 @@
       dest: $HOME/.kube/config
       remote_src: yes
 
+  - name: get kubeconfig
+    fetch:
+      src: /etc/kubernetes/admin.conf
+      dest: /home/piranha900/.kube/config
+      flat: yes
+
   - name: install Pod network
     become: yes
     shell: kubectl apply -f https://github.com/coreos/flannel/raw/master/Documentation/kube-flannel.yml
-
-        #  - name: Copying required files
-        #    shell: |
-        #     mkdir -p $HOME/.kube
-        #     cp -f /etc/kubernetes/admin.conf $HOME/.kube/config
-        #     chown $(id -u):$(id -g) $HOME/.kube/config
-
-        #  - name: Download Network Add-on
-        #    command: wget https://github.com/coreos/flannel/raw/master/Documentation/kube-flannel.yml
-
-        #  - name: Install Network Add-on
-        #    command: kubectl apply -f kube-flannel.yml
 

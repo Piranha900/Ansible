@@ -1,4 +1,4 @@
-[init] Using Kubernetes version: v1.20.5
+[init] Using Kubernetes version: v1.21.0
 [preflight] Running pre-flight checks
 [preflight] Pulling images required for setting up a Kubernetes cluster
 [preflight] This might take a minute or two, depending on the speed of your internet connection
@@ -33,15 +33,15 @@
 [etcd] Creating static Pod manifest for local etcd in "/etc/kubernetes/manifests"
 [wait-control-plane] Waiting for the kubelet to boot up the control plane as static Pods from directory "/etc/kubernetes/manifests". This can take up to 4m0s
 [kubelet-check] Initial timeout of 40s passed.
-[apiclient] All control plane components are healthy after 90.041629 seconds
+[apiclient] All control plane components are healthy after 72.120611 seconds
 [upload-config] Storing the configuration used in ConfigMap "kubeadm-config" in the "kube-system" Namespace
-[kubelet] Creating a ConfigMap "kubelet-config-1.20" in namespace kube-system with the configuration for the kubelets in the cluster
+[kubelet] Creating a ConfigMap "kubelet-config-1.21" in namespace kube-system with the configuration for the kubelets in the cluster
 [upload-certs] Storing the certificates in Secret "kubeadm-certs" in the "kube-system" Namespace
 [upload-certs] Using certificate key:
-5400317c4f3c9cbc40758b4b0eb62f9ecc9fda242daf9a626ab81a88454a1c21
-[mark-control-plane] Marking the node k8s-master-01.marvel.io as control-plane by adding the labels "node-role.kubernetes.io/master=''" and "node-role.kubernetes.io/control-plane='' (deprecated)"
+33c89ba8edfe52f00ff8d6b1e17a293f3065c7376aecef6db073abd788fa1dba
+[mark-control-plane] Marking the node k8s-master-01.marvel.io as control-plane by adding the labels: [node-role.kubernetes.io/master(deprecated) node-role.kubernetes.io/control-plane node.kubernetes.io/exclude-from-external-load-balancers]
 [mark-control-plane] Marking the node k8s-master-01.marvel.io as control-plane by adding the taints [node-role.kubernetes.io/master:NoSchedule]
-[bootstrap-token] Using token: 3fbuuo.rqoc8uvflgbzwhwl
+[bootstrap-token] Using token: j6hoxe.6got2hwti2ouxkb9
 [bootstrap-token] Configuring bootstrap tokens, cluster-info ConfigMap, RBAC Roles
 [bootstrap-token] configured RBAC rules to allow Node Bootstrap tokens to get nodes
 [bootstrap-token] configured RBAC rules to allow Node Bootstrap tokens to post CSRs in order for nodes to get long term certificate credentials
@@ -70,9 +70,9 @@ Run "kubectl apply -f [podnetwork].yaml" with one of the options listed at:
 
 You can now join any number of the control-plane node running the following command on each as root:
 
-  kubeadm join 192.168.1.40:6443 --token 3fbuuo.rqoc8uvflgbzwhwl \
-    --discovery-token-ca-cert-hash sha256:084f31efa625ad7977faa384da22a29a1fb9f700bc0cdaa7262f865335948821 \
-    --control-plane --certificate-key 5400317c4f3c9cbc40758b4b0eb62f9ecc9fda242daf9a626ab81a88454a1c21
+  kubeadm join 192.168.1.40:6443 --token j6hoxe.6got2hwti2ouxkb9 \
+	--discovery-token-ca-cert-hash sha256:c0d09772dc8d817ca9c6387fcbea0593213f62da81a5c86ff1bf06deeee5f200 \
+	--control-plane --certificate-key 33c89ba8edfe52f00ff8d6b1e17a293f3065c7376aecef6db073abd788fa1dba
 
 Please note that the certificate-key gives access to cluster sensitive data, keep it secret!
 As a safeguard, uploaded-certs will be deleted in two hours; If necessary, you can use
@@ -80,5 +80,5 @@ As a safeguard, uploaded-certs will be deleted in two hours; If necessary, you c
 
 Then you can join any number of worker nodes by running the following on each as root:
 
-kubeadm join 192.168.1.40:6443 --token 3fbuuo.rqoc8uvflgbzwhwl \
-    --discovery-token-ca-cert-hash sha256:084f31efa625ad7977faa384da22a29a1fb9f700bc0cdaa7262f865335948821 
+kubeadm join 192.168.1.40:6443 --token j6hoxe.6got2hwti2ouxkb9 \
+	--discovery-token-ca-cert-hash sha256:c0d09772dc8d817ca9c6387fcbea0593213f62da81a5c86ff1bf06deeee5f200 

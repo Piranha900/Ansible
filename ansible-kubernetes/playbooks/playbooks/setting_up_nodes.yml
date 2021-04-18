@@ -20,14 +20,34 @@
        gpgcheck=1
        repo_gpgcheck=1
        gpgkey=https://packages.cloud.google.com/yum/doc/yum-key.gpg https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
-       # exclude=kubelet kubeadm kubectl
+       exclude=kubelet kubeadm kubectl
 
-  - name: Installing Docker and firewalld
+  - name: Installing Docker #and firewalld
     shell: |
-     yum install firewalld -y
      yum install -y yum-utils device-mapper-persistent-data lvm2
      yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
-     yum install docker-ce -y 
+     yum install docker-ce docker-ce-cli containerd.io -y 
+
+  - name: Resetting kubeadm
+    shell: kubeadm reset -f
+    register: output
+
+  - name: Docker prune 
+    shell: docker system prune -af
+
+  - name: Deleting Interfaces 
+    shell: |
+     ip l delete cni0
+     ip l delete flannel.1
+    ignore_errors: yes
+
+  - name: Resetting config
+    shell: |
+      rm -rf $HOME/.kube
+      rm -rf /etc/kubernetes/*
+      rm -rf /etc/cni/*
+      rm -rf /var/lib/kubelet/*
+      rm -rf /var/lib/etcd/*
 
   - name: Installing required packages
     yum:
@@ -41,13 +61,8 @@
      enabled: yes
     with_items: "{{ services }}"
 
-    #  - name: Allow Network Ports in Firewalld
-    #    firewalld:
-      #     port: "{{ item }}"
-      #     state: disabled
-      #     permanent: yes
-      #     immediate: yes
-     #    with_items: "{{ master_ports if ('kubernetes-master-nodes' in group_names) else worker_ports }}"
+  - name: Enabling Bridge Firewall Rule
+    shell: "echo '1' > /proc/sys/net/bridge/bridge-nf-call-iptables"
 
-     #  - name: Enabling Bridge Firewall Rule
-     #    shell: "echo '1' > /proc/sys/net/bridge/bridge-nf-call-iptables"
+  - name: Pulling images required for setting up a Kubernetes cluster
+    shell: kubeadm config images pull

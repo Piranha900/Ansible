@@ -4,6 +4,7 @@ cidr_v: 10.244.0.0/16
 packages:
 - kubeadm
 - kubectl
+- kubelet
 
 services:
 - docker

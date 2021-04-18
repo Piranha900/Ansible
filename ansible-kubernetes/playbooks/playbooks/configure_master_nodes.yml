@@ -4,32 +4,17 @@
   vars_files:
   - env_variables
   tasks:
-  - name: Pulling images required for setting up a Kubernetes cluster
-    shell: kubeadm config images pull
-
-  - name: Resetting kubeadm
-    shell: kubeadm reset -f
-    register: output
-
-  - name: Deleting Interfaces 
-    shell: |
-     ip l delete cni0
-     ip l delete flannel.1
-  
-  - name: Resetting config
-    shell: |
-     rm -rf $HOME/.kube
 
   - name: Copying token to masters nodes
     copy: src=join_token dest=join_token
 
   - name: Joining masters nodes with kubernetes master
     shell: |
-     sed -n '73,76 p' join_token > out.sh
-     sh out.sh
+      sed -n '73,76 p' join_token > out.sh
+      sh out.sh
 
   - name: Copying required files
     shell: |
-     mkdir -p $HOME/.kube
-     sudo cp -f /etc/kubernetes/admin.conf $HOME/.kube/config
-     sudo chown $(id -u):$(id -g) $HOME/.kube/config
+      mkdir -p $HOME/.kube
+      sudo cp -f /etc/kubernetes/admin.conf $HOME/.kube/config
+      sudo chown $(id -u):$(id -g) $HOME/.kube/config
