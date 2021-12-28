@@ -9,3 +9,5 @@
 
 
 - https://www.virtualizationhowto.com/2021/05/terraform-vsphere-tutorial-linux-virtual-machine-clone/
+
+- https://github.com/hashicorp/terraform-provider-vsphere/issues/567
